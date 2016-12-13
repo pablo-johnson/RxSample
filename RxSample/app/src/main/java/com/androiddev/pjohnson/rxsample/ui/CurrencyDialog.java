@@ -1,6 +1,8 @@
 package com.androiddev.pjohnson.rxsample.ui;
 
 import android.app.Dialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -26,6 +28,8 @@ import io.realm.RealmConfiguration;
 
 public class CurrencyDialog extends DialogFragment implements ExchangeRecyclerAdapter.OnCurrencyClickListener {
 
+    private ExchangeRecyclerAdapter.OnCurrencyClickListener listener;
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
@@ -43,7 +47,7 @@ public class CurrencyDialog extends DialogFragment implements ExchangeRecyclerAd
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         exchangesRecyclerView.setItemAnimator(new DefaultItemAnimator());
         exchangesRecyclerView.setLayoutManager(linearLayoutManager);
-        ExchangeRecyclerAdapter exchangeRecyclerAdapter = new ExchangeRecyclerAdapter(getActivity(), new ArrayList<Currency>());
+        ExchangeRecyclerAdapter exchangeRecyclerAdapter = new ExchangeRecyclerAdapter(getActivity(), new ArrayList<Currency>(), ExchangeRecyclerAdapter.FROM_DIALOG_TYPE);
         exchangeRecyclerAdapter.setListener(this);
         exchangesRecyclerView.setAdapter(exchangeRecyclerAdapter);
 
@@ -56,6 +60,13 @@ public class CurrencyDialog extends DialogFragment implements ExchangeRecyclerAd
 
     @Override
     public void onCurrencyClicked(@NonNull Currency currency, View view, int position) {
+        SharedPreferences.Editor editor = getActivity().getSharedPreferences(MainActivity.DB_NAME, Context.MODE_PRIVATE).edit();
+        editor.putString(MainFragment.BASE_CURRENCY, currency.getCurrency()).apply();
+        dismiss();
+        listener.onCurrencyClicked(currency, view, position);
+    }
 
+    public void setListener(ExchangeRecyclerAdapter.OnCurrencyClickListener listener) {
+        this.listener = listener;
     }
 }

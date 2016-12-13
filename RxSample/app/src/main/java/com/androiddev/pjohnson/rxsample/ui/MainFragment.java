@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import io.realm.Realm;
+import io.realm.RealmConfiguration;
+import io.realm.RealmQuery;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -42,11 +45,11 @@ import rx.schedulers.Schedulers;
  */
 public class MainFragment extends Fragment implements ExchangeRecyclerAdapter.OnCurrencyClickListener {
 
-    private static final String BASE_CURRENCY = "baseCurrency";
-    private OnFragmentInteractionListener mListener;
+    public static final String BASE_CURRENCY = "baseCurrency";
 
     RecyclerView exchangesRecyclerView;
     private ExchangeRecyclerAdapter exchangeRecyclerAdapter;
+    private TextView baseCurrencyTextView;
 
     public MainFragment() {
         // Required empty public constructor
@@ -63,11 +66,15 @@ public class MainFragment extends Fragment implements ExchangeRecyclerAdapter.On
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
         setHasOptionsMenu(true);
+        baseCurrencyTextView = (TextView) view.findViewById(R.id.baseCurrency);
         setUpRecyclerView(view);
-        SharedPreferences preferences = getActivity().getSharedPreferences(MainActivity.DB_NAME, Context.MODE_PRIVATE);
-        TextView baseCurrencyTextView = (TextView) view.findViewById(R.id.baseCurrency);
-        baseCurrencyTextView.setText(preferences.getString(BASE_CURRENCY, "EUR"));
+        setUpCurrentCurrency();
         return view;
+    }
+
+    private void setUpCurrentCurrency() {
+        SharedPreferences preferences = getActivity().getSharedPreferences(MainActivity.DB_NAME, Context.MODE_PRIVATE);
+        baseCurrencyTextView.setText(preferences.getString(BASE_CURRENCY, "EUR"));
     }
 
     private void setUpRecyclerView(View view) {
@@ -75,7 +82,7 @@ public class MainFragment extends Fragment implements ExchangeRecyclerAdapter.On
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         exchangesRecyclerView.setItemAnimator(new DefaultItemAnimator());
         exchangesRecyclerView.setLayoutManager(linearLayoutManager);
-        exchangeRecyclerAdapter = new ExchangeRecyclerAdapter(getActivity(), new ArrayList<Currency>());
+        exchangeRecyclerAdapter = new ExchangeRecyclerAdapter(getActivity(), new ArrayList<Currency>(), ExchangeRecyclerAdapter.FROM_LANDING_TYPE);
         exchangeRecyclerAdapter.setListener(this);
         exchangesRecyclerView.setAdapter(exchangeRecyclerAdapter);
         ExchangeApi.get().getRetrofitService().getLatestExchanges()
@@ -84,14 +91,7 @@ public class MainFragment extends Fragment implements ExchangeRecyclerAdapter.On
                 .flatMap(new Func1<ExchangeResponse, Observable<List<Currency>>>() {
                     @Override
                     public Observable<List<Currency>> call(ExchangeResponse exchangeResponse) {
-                        List<Currency> currencies = new ArrayList<>();
-                        for (Map.Entry<String, Double> pair : exchangeResponse.getRates().entrySet()) {
-                            Currency currency = new Currency();
-                            currency.setCurrency(pair.getKey());
-                            currency.setValue(pair.getValue());
-                            currencies.add(currency);
-                        }
-                        return Observable.just(currencies);
+                        return getListObservable(exchangeResponse);
                     }
                 })
                 .subscribe(new Action1<List<Currency>>() {
@@ -103,24 +103,43 @@ public class MainFragment extends Fragment implements ExchangeRecyclerAdapter.On
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString() + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    @Override
     public void onCurrencyClicked(@NonNull Currency currency, View view, int position) {
+        setUpCurrentCurrency();
+        ExchangeApi.get().getRetrofitService().getLatestExchangesWithBase(currency.getCurrency())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .flatMap(new Func1<ExchangeResponse, Observable<List<Currency>>>() {
+                    @Override
+                    public Observable<List<Currency>> call(ExchangeResponse exchangeResponse) {
+                        return getListObservable(exchangeResponse);
+                    }
+                })
+                .subscribe(new Action1<List<Currency>>() {
+                    @Override
+                    public void call(List<Currency> currencies) {
+                        exchangeRecyclerAdapter.setData(currencies);
+                    }
+                });
+    }
 
+    @NonNull
+    private Observable<List<Currency>> getListObservable(ExchangeResponse exchangeResponse) {
+        RealmConfiguration realmConfig = new RealmConfiguration.Builder(getActivity()).deleteRealmIfMigrationNeeded().build();
+        Realm.setDefaultConfiguration(realmConfig);
+        Realm realm = Realm.getDefaultInstance();
+
+        List<Currency> currencies = new ArrayList<>();
+        for (Map.Entry<String, Double> pair : exchangeResponse.getRates().entrySet()) {
+            Currency currency = new Currency();
+            currency.setCurrency(pair.getKey());
+            currency.setValue(pair.getValue());
+
+            RealmQuery<Currency> query = realm.where(Currency.class);
+            Currency cur = query.equalTo("currency", pair.getKey()).findFirst();
+            currency.setName(cur.getName());
+            currencies.add(currency);
+        }
+        return Observable.just(currencies);
     }
 
     public interface OnFragmentInteractionListener {
@@ -137,6 +156,7 @@ public class MainFragment extends Fragment implements ExchangeRecyclerAdapter.On
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.currency_action) {
             CurrencyDialog currencyDialog = new CurrencyDialog();
+            currencyDialog.setListener(this);
             currencyDialog.show(getFragmentManager(), "yeah");
         }
         return super.onOptionsItemSelected(item);

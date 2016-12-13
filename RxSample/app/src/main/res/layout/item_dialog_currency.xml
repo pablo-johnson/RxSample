@@ -12,13 +12,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:weightSum="6">
+        android:weightSum="3">
 
         <TextView
             android:id="@+id/currencyName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
+            android:layout_weight="2"
             android:paddingLeft="5dp"
             android:text="Hola"
             android:textSize="16sp" />
@@ -28,15 +28,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingLeft="5dp"
-            android:text="Hola"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/currencyValue"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
             android:paddingLeft="5dp"
             android:text="Hola"
             android:textSize="16sp" />
