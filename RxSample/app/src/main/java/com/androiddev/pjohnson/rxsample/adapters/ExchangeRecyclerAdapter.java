@@ -14,8 +14,6 @@ import com.androiddev.pjohnson.rxsample.model.Currency;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
 
 /**
  * @author Pablo Johnson (pablo.88j@gmail.com)
@@ -44,8 +42,9 @@ public class ExchangeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.V
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         Currency currency = currencies.get(position);
-        ((CurrencyHolder) holder).currencyName.setText(currency.getCurrency());
-        ((CurrencyHolder) holder).currencyValue.setText(currency.getValue().toString());
+        ((CurrencyHolder) holder).currencyName.setText(currency.getName());
+        ((CurrencyHolder) holder).currency.setText(currency.getCurrency());
+        ((CurrencyHolder) holder).currencyValue.setText(currency.getValue() != null ? currency.getValue().toString() : null);
     }
 
     @Override
@@ -64,14 +63,15 @@ public class ExchangeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.V
 
     final class CurrencyHolder extends RecyclerView.ViewHolder {
 
-        @Bind(R.id.currencyName)
-        TextView currencyName;
-        @Bind(R.id.currencyValue)
+        TextView currency;
         TextView currencyValue;
+        TextView currencyName;
 
         public CurrencyHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this, itemView);
+            currencyName = (TextView) itemView.findViewById(R.id.currencyName);
+            currency = (TextView) itemView.findViewById(R.id.currency);
+            currencyValue = (TextView) itemView.findViewById(R.id.currencyValue);
         }
     }
 }

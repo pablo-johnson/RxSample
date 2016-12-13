@@ -1,14 +1,32 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.androiddev.pjohnson.rxsample.ui.MainFragment">
 
+    <TextView
+        android:id="@+id/baseCurrencyLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/baseCurrencyLabel"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/baseCurrency"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_toRightOf="@id/baseCurrencyLabel"
+        android:text="Dollars"
+        android:textSize="16sp" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/exchangesList"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_below="@id/baseCurrency"
+        android:layout_marginTop="10dp">
 
     </android.support.v7.widget.RecyclerView>
 
-</FrameLayout>
+</RelativeLayout>

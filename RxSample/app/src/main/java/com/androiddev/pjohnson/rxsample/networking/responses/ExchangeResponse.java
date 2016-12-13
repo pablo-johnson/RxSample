@@ -1,16 +1,15 @@
 package com.androiddev.pjohnson.rxsample.networking.responses;
 
-import java.util.List;
+import java.util.HashMap;
 
 /**
  * Created by pjohnson on 12/12/16.
  */
-
 public class ExchangeResponse {
 
     private String base;
     private String date;
-    private List<String> rates;
+    private HashMap<String, Double> rates;
 
     public String getBase() {
         return base;
@@ -28,11 +27,11 @@ public class ExchangeResponse {
         this.date = date;
     }
 
-    public List<String> getRates() {
+    public HashMap<String, Double> getRates() {
         return rates;
     }
 
-    public void setRates(List<String> rates) {
+    public void setRates(HashMap<String, Double> rates) {
         this.rates = rates;
     }
 }

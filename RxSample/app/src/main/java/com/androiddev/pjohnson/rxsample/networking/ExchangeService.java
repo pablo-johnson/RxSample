@@ -12,13 +12,13 @@ import rx.Observable;
  */
 public interface ExchangeService {
 
-    @GET("/latest")
+    @GET("latest")
     Observable<ExchangeResponse> getLatestExchanges();
 
-    @GET("/{date}")
+    @GET("{date}")
     Observable<ExchangeResponse> getLatestExchangesFrom(@Path("date") String date);
 
-    @GET("/latest")
+    @GET("latest")
     Observable<ExchangeResponse> getLatestExchangesWithBase(@Query("base") String base);
 
 }

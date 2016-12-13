@@ -6,6 +6,7 @@ import com.androiddev.pjohnson.rxsample.BuildConfig;
 
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
@@ -32,6 +33,7 @@ public class ExchangeApi {
             OkHttpClient client = OkHttpSingleton.getOkHttpClient();
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl(BuildConfig.BASE_URL)
+                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(client)
                     .build();
